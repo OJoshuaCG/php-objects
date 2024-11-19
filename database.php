@@ -1,7 +1,6 @@
 <?php
-
 declare(strict_types=1);
-class database
+class Database
 {
     private $connection;
     function __construct(
@@ -25,10 +24,13 @@ class database
             default      => false
         };
 
-        if($status)
-            echo("Connected!");
-        else
-            echo("Error connection to SQL:  ");
+        if($status){
+            // echo("Connected!");
+            return true;
+        }
+
+        echo("Error connection to SQL");
+        return false;
     }
 
     protected function postgresqlConnect()
@@ -46,6 +48,7 @@ class database
             );
             return true;
         } catch (PDOException $e) {
+            echo ("Error connection to SQL:  " . $e->getMessage());
             return false;
         }
     }
@@ -62,6 +65,7 @@ class database
             );
             return true;
         } catch (PDOException $e) {
+            echo ("Error connection to SQL:  " . $e->getMessage());
             return false;
         }
     }
@@ -84,8 +88,8 @@ class database
             // $this->connection->setAttribute(PDO::SQLSRV_ATTR_ENCODING, PDO::SQLSRV_ENCODING_UTF8);
             return true;
         } catch (PDOException $e) {
-            return false;
             echo ("Error connection to SQL:  " . $e->getMessage());
+            return false;
         }
     }
 
@@ -104,12 +108,20 @@ class database
 
     public function executeQuery(string $query, bool $fetch_one = false, array $params = [])
     {
-        $stmt = $this->connection->prepare($query);
-        $stmt->execute($params);
-        if ($fetch_one)
-            return $stmt->fetch(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->connection->prepare($query);
+            $result = $stmt->execute($params);
+            if(!$result){
+                return null;
+            }
+            if ($fetch_one)
+                return $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch(Throwable $t){
+            echo "Database. Ocurrio un error inesperado " . $t->getMessage();
+            return null;
+        }
     }
 }
 
@@ -121,9 +133,8 @@ class database
 
 */
 
-$db = new database("localhost", "prueba", "root", "joshua99", "3306", "mysql");
-// $db = new database("localhost", "formulaone", "sa", "joshua99", "1433", "sqlserver");
-
+// $db = new database("localhost", "advetureworks", "root", "root", "3306", "mysql");
+// $db = new database("localhost", "formulaone", "sa", "admin", "1433", "sqlserver");
 
 /**
  * https://www.php.net/manual/es/ref.pdo-sqlsrv.php
